@@ -15,7 +15,7 @@
             "@semantic-release/changelog",
             {
                 "changelogFile": "CHANGELOG.md",
-                "changelogTitle": "# Universal Codebase Changelog"
+                "changelogTitle": "# New IDs Canoe Compensation Changelog"
             }
         ],
         [
