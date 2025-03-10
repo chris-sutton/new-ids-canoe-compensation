@@ -1,7 +1,7 @@
 {
-  "name": "universal-codebase",
+  "name": "new-ids-canoe-compensation",
   "version": "1.0.0",
-  "description": "A universal codebase template",
+  "description": "Data pipeline for new CANOE compensation IDs.",
   "scripts": {
     "test": "echo 'Running dummy tests...' && exit 0"
   },
