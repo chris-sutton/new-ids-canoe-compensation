@@ -1,0 +1,2 @@
+2025-03-10 12:50:12.411627, 2 new records found, Write success: True
+2025-03-10 13:27:44.851618, 0 new records found, Write success: False

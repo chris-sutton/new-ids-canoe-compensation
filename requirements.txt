@@ -1,0 +1,6 @@
+pandas==2.2.3
+pytest==8.3.5
+python-dotenv==1.0.1
+Requests==2.32.3
+requests_mock==1.12.1
+setuptools==45.2.0
