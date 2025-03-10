@@ -1,0 +1,13 @@
+{
+  "name": "universal-codebase",
+  "version": "1.0.0",
+  "description": "A universal codebase template",
+  "scripts": {
+    "test": "echo 'Running dummy tests...' && exit 0"
+  },
+  "devDependencies": {
+    "semantic-release": "^23.0.0",
+    "@semantic-release/git": "^10.0.1",
+    "@semantic-release/changelog": "^6.0.3"
+  }
+}
