@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.set_version.outputs.version }}
-      upload_url: ${{ steps.get_upload_url.outputs.upload_url }}  # New output
+      upload_url: ${{ steps.set_version.outputs.upload_url }}
     steps:
       - uses: actions/checkout@v3
         with:
@@ -22,21 +22,24 @@ jobs:
       - run: npm install
 
       - run: npx semantic-release
-        id: semantic
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
-      - name: Set version and upload URL outputs
+      - name: Set version and upload URL
         id: set_version
         run: |
           VERSION=$(git describe --tags --abbrev=0)
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
-          # Fetch the release info to get the upload_url
-          RELEASE_ID=$(curl -s -H "Authorization: token ${{ secrets.GH_TOKEN }}" \
+          # Fetch release details and extract upload_url directly
+          UPLOAD_URL=$(curl -s -H "Authorization: token ${{ secrets.GH_TOKEN }}" \
             "https://api.github.com/repos/${{ github.repository }}/releases/tags/${VERSION}" | \
-            jq -r '.id')
-          UPLOAD_URL="https://uploads.github.com/repos/${{ github.repository }}/releases/${RELEASE_ID}/assets"
+            jq -r '.upload_url | sub("{.*$"; "")')
+          if [ -z "$UPLOAD_URL" ]; then
+            echo "Error: Could not fetch upload_url" >&2
+            exit 1
+          fi
           echo "upload_url=${UPLOAD_URL}" >> $GITHUB_OUTPUT
+          echo "Debug: upload_url set to ${UPLOAD_URL}"
 
   package-and-upload:
     needs: release-version
@@ -57,12 +60,17 @@ jobs:
           cd release
           zip -r ../runtime-${{ needs.release-version.outputs.version }}.zip .
 
+      - name: Debug outputs
+        run: |
+          echo "Version: ${{ needs.release-version.outputs.version }}"
+          echo "Upload URL: ${{ needs.release-version.outputs.upload_url }}"
+
       - name: Upload runtime artifact
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
         with:
-          upload_url: ${{ needs.release-version.outputs.upload_url }}  # Use the dynamic URL
+          upload_url: ${{ needs.release-version.outputs.upload_url }}
           asset_path: ./runtime-${{ needs.release-version.outputs.version }}.zip
           asset_name: runtime-${{ needs.release-version.outputs.version }}.zip
           asset_content_type: application/zip
