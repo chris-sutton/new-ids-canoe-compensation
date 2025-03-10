@@ -2,11 +2,13 @@ name: Release
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main ]
 
 jobs:
-  release:
+  release-version:
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.set_version.outputs.version }}
     steps:
       - uses: actions/checkout@v3
         with:
@@ -16,5 +18,38 @@ jobs:
           node-version: '21'
       - run: npm install
       - run: npx semantic-release
+        id: semantic
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
+      - name: Set version output
+        id: set_version
+        run: |
+          # Extract the latest tag (assumes semantic-release just created it)
+          VERSION=$(git describe --tags --abbrev=0)
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+
+  package-and-upload:
+    needs: release-version
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: '3.13'
+      - name: Create runtime artifact
+        run: |
+          mkdir -p release
+          cp requirements.txt release/
+          cp -r src release/
+          cd release
+          zip -r ../runtime-${{ needs.release-version.outputs.version }}.zip .
+      - name: Upload runtime artifact
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+        with:
+          upload_url: https://uploads.github.com/repos/${{ github.repository }}/releases/tags/${{ needs.release-version.outputs.version }}/assets{?name,label}  # Dynamic URL
+          asset_path: ./runtime-${{ needs.release-version.outputs.version }}.zip
+          asset_name: runtime-${{ needs.release-version.outputs.version }}.zip
+          asset_content_type: application/zip
