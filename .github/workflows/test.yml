@@ -1,4 +1,4 @@
-name: Test
+name: Python Tests
 
 on:
   push:
@@ -9,12 +9,24 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version: '23'
-      - name: Install dependencies
-        run: npm install
-      - name: Run tests
-        run: npm test
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v3
+      with:
+        python-version: '3.13'
+
+    - name: Install dependencies
+      run: |
+        python -m venv venv
+        source venv/bin/activate
+        pip install -r requirements.txt
+        pip install pytest
+
+    - name: Run tests
+      run: |
+        source venv/bin/activate
+        pytest
