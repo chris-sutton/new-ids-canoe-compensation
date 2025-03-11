@@ -31,27 +31,84 @@ fi
 
 # Install pip into the pseudo-venv's site-packages
 echo "Installing pip locally..."
-PYTHONPATH="$PWD/$PSEUDO_VENV_DIR/lib/python3.12/site-packages" python3.12 get-pip.py --target "$PSEUDO_VENV_DIR/lib/python3.12/site-packages"
+python3.12 get-pip.py --target "$PSEUDO_VENV_DIR/lib/python3.12/site-packages"
 if [ $? -ne 0 ]; then
     echo "Error: Failed to install pip into $PSEUDO_VENV_DIR."
     exit 1
 fi
 
-# Install dependencies into the pseudo-venv using python -m pip
+# Define absolute path for clarity
+ABSOLUTE_VENV_PATH="$PWD/$PSEUDO_VENV_DIR/lib/python3.12/site-packages"
+
+# Create a pip executable in the pseudo-venv bin directory
+echo "Creating pip executable..."
+cat <<EOL > "$PSEUDO_VENV_DIR/bin/pip3"
+#!/bin/bash
+export PYTHONPATH="$ABSOLUTE_VENV_PATH"
+exec /usr/bin/python3.12 -m pip "\$@"
+EOL
+chmod +x "$PSEUDO_VENV_DIR/bin/pip3"
+
+# Verify pip executable works
+PIP_EXEC="$PSEUDO_VENV_DIR/bin/pip3"
+echo "Debugging pip installation..."
+echo "Pip executable location: $PIP_EXEC"
+"$PIP_EXEC" --version
+if [ $? -ne 0 ]; then
+    echo "Error: Pip executable is not working."
+    echo "Checking pip module in site-packages:"
+    ls -l "$ABSOLUTE_VENV_PATH/pip"
+    echo "Testing pip module import:"
+    PYTHONPATH="$ABSOLUTE_VENV_PATH" /usr/bin/python3.12 -c "import pip; print('pip version:', pip.__version__)"
+    exit 1
+fi
+
+# Install a compatible version of setuptools
+echo "Installing setuptools for Python 3.12 compatibility..."
+"$PIP_EXEC" install "setuptools>=69.0.0" --no-user --target "$PSEUDO_VENV_DIR/lib/python3.12/site-packages"
+if [ $? -ne 0 ]; then
+    echo "Error: Failed to install setuptools."
+    exit 1
+fi
+
+# Install dependencies using the pip executable
 echo "Installing dependencies from requirements.txt..."
-PYTHONPATH="$PWD/$PSEUDO_VENV_DIR/lib/python3.12/site-packages" python3.12 -I -s -m pip install -r requirements.txt --no-user --target "$PSEUDO_VENV_DIR/lib/python3.12/site-packages"
+"$PIP_EXEC" install -r requirements.txt --no-user --target "$PSEUDO_VENV_DIR/lib/python3.12/site-packages"
 if [ $? -ne 0 ]; then
     echo "Error: Failed to install dependencies. Check requirements.txt or network access."
     exit 1
 fi
 
-# Create a simple python wrapper to use the pseudo-venv
+# Verify installed packages
+echo "Listing installed packages in $ABSOLUTE_VENV_PATH..."
+ls -l "$ABSOLUTE_VENV_PATH"
+
+# Create a python wrapper to use the pseudo-venv
+echo "Creating python wrapper..."
 cat <<EOL > "$PSEUDO_VENV_DIR/bin/python"
 #!/bin/bash
-export PYTHONPATH="\$PYTHONPATH:$PWD/$PSEUDO_VENV_DIR/lib/python3.12/site-packages"
-exec /usr/bin/python3.12 -I -s "\$@"
+export PYTHONPATH="$ABSOLUTE_VENV_PATH:\$PYTHONPATH"
+exec /usr/bin/python3.12 "\$@"
 EOL
 chmod +x "$PSEUDO_VENV_DIR/bin/python"
+
+# Test the python wrapper
+echo "Testing python wrapper..."
+"$PSEUDO_VENV_DIR/bin/python" -c "import sys; print('sys.path:', sys.path)"
+"$PSEUDO_VENV_DIR/bin/python" -c "import pkg_resources; print('Installed packages:', [d.project_name for d in pkg_resources.working_set])"
+
+# Test running src/main.py
+echo "Testing src/main.py execution..."
+if [ -f "src/main.py" ]; then
+    "$PSEUDO_VENV_DIR/bin/python" src/main.py
+    if [ $? -ne 0 ]; then
+        echo "Error: src/main.py failed to run. Please check the error above and ensure all required modules are in requirements.txt."
+    else
+        echo "src/main.py ran successfully!"
+    fi
+else
+    echo "Warning: src/main.py not found. Skipping test."
+fi
 
 # Check if .env exists
 if [ ! -f ".env" ]; then
