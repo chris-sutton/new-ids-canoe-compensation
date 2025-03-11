@@ -1,3 +1,10 @@
+## [0.2.6](https://github.com/chris-sutton/new-ids-canoe-compensation/compare/v0.2.5...v0.2.6) (2025-03-11)
+
+
+### Bug Fixes
+
+* removed tracked __pycache__ from src ([30e12fe](https://github.com/chris-sutton/new-ids-canoe-compensation/commit/30e12fe0fc1744b82456f29d26501326587ed203))
+
 ## [0.2.5](https://github.com/chris-sutton/new-ids-canoe-compensation/compare/v0.2.4...v0.2.5) (2025-03-11)
 
 
