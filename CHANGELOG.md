@@ -1,3 +1,10 @@
+## [0.3.7](https://github.com/chris-sutton/new-ids-canoe-compensation/compare/v0.3.6...v0.3.7) (2025-03-11)
+
+
+### Bug Fixes
+
+* install.sh works, this was an insane solution, the server needs some TLC. ([9a3c2f5](https://github.com/chris-sutton/new-ids-canoe-compensation/commit/9a3c2f547adb3e135fff271a0746618bdbb68ea2))
+
 ## [0.3.6](https://github.com/chris-sutton/new-ids-canoe-compensation/compare/v0.3.5...v0.3.6) (2025-03-11)
 
 
