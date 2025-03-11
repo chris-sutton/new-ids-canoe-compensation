@@ -36,9 +36,15 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-# Install dependencies into the pseudo-venv using python -m pip
+# Ensure pip script is present
+if [ ! -f "$PSEUDO_VENV_DIR/bin/pip" ]; then
+    echo "Error: pip script not found in $PSEUDO_VENV_DIR/bin."
+    exit 1
+fi
+
+# Install dependencies into the pseudo-venv using the pip script
 echo "Installing dependencies from requirements.txt..."
-PYTHONPATH="$PWD/$PSEUDO_VENV_DIR:$PYTHONPATH" python3.12 -I -s -m pip install -r requirements.txt --target "$PSEUDO_VENV_DIR"
+"$PSEUDO_VENV_DIR/bin/pip" install -r requirements.txt --target "$PSEUDO_VENV_DIR"
 if [ $? -ne 0 ]; then
     echo "Error: Failed to install dependencies. Check requirements.txt or network access."
     exit 1
