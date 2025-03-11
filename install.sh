@@ -1,22 +1,26 @@
 #!/bin/bash
 
-# Script to install the CANOE Compensation Pipeline in a pseudo-virtual environment
+# Reusable script to set up a pseudo-virtual environment for Python projects
 
-# Check if Python 3.12 is available
-if ! command -v python3.12 &> /dev/null; then
-    echo "Error: Python 3.12 is required but not found."
+# Default Python version (can be overridden with an environment variable)
+PYTHON_VERSION=${PYTHON_VERSION:-3.12}
+PYTHON_EXEC="python${PYTHON_VERSION}"
+
+# Check if the specified Python version is available
+if ! command -v "$PYTHON_EXEC" &> /dev/null; then
+    echo "Error: $PYTHON_EXEC is required but not found."
     exit 1
 fi
 
-# Set up pseudo-venv directory
-PSEUDO_VENV_DIR="venv"
+# Set up pseudo-venv directory (default is 'venv', can be overridden)
+PSEUDO_VENV_DIR=${PSEUDO_VENV_DIR:-venv}
 echo "Setting up pseudo-virtual environment in $PSEUDO_VENV_DIR..."
 
 # Clean up any existing pseudo-venv
 if [ -d "$PSEUDO_VENV_DIR" ]; then
     rm -rf "$PSEUDO_VENV_DIR"
 fi
-mkdir -p "$PSEUDO_VENV_DIR/lib/python3.12/site-packages"
+mkdir -p "$PSEUDO_VENV_DIR/lib/python${PYTHON_VERSION}/site-packages"
 mkdir -p "$PSEUDO_VENV_DIR/bin"
 
 # Download get-pip.py if not present
@@ -31,21 +35,21 @@ fi
 
 # Install pip into the pseudo-venv's site-packages
 echo "Installing pip locally..."
-python3.12 get-pip.py --target "$PSEUDO_VENV_DIR/lib/python3.12/site-packages"
+"$PYTHON_EXEC" get-pip.py --target "$PSEUDO_VENV_DIR/lib/python${PYTHON_VERSION}/site-packages"
 if [ $? -ne 0 ]; then
     echo "Error: Failed to install pip into $PSEUDO_VENV_DIR."
     exit 1
 fi
 
 # Define absolute path for clarity
-ABSOLUTE_VENV_PATH="$PWD/$PSEUDO_VENV_DIR/lib/python3.12/site-packages"
+ABSOLUTE_VENV_PATH="$PWD/$PSEUDO_VENV_DIR/lib/python${PYTHON_VERSION}/site-packages"
 
 # Create a pip executable in the pseudo-venv bin directory
 echo "Creating pip executable..."
 cat <<EOL > "$PSEUDO_VENV_DIR/bin/pip3"
 #!/bin/bash
 export PYTHONPATH="$ABSOLUTE_VENV_PATH"
-exec /usr/bin/python3.12 -m pip "\$@"
+exec /usr/bin/$PYTHON_EXEC -m pip "\$@"
 EOL
 chmod +x "$PSEUDO_VENV_DIR/bin/pip3"
 
@@ -59,24 +63,28 @@ if [ $? -ne 0 ]; then
     echo "Checking pip module in site-packages:"
     ls -l "$ABSOLUTE_VENV_PATH/pip"
     echo "Testing pip module import:"
-    PYTHONPATH="$ABSOLUTE_VENV_PATH" /usr/bin/python3.12 -c "import pip; print('pip version:', pip.__version__)"
+    PYTHONPATH="$ABSOLUTE_VENV_PATH" /usr/bin/$PYTHON_EXEC -c "import pip; print('pip version:', pip.__version__)"
     exit 1
 fi
 
-# Install a compatible version of setuptools
-echo "Installing setuptools for Python 3.12 compatibility..."
-"$PIP_EXEC" install "setuptools>=69.0.0" --no-user --target "$PSEUDO_VENV_DIR/lib/python3.12/site-packages"
+# Install a compatible version of setuptools (optional, comment out if not needed)
+echo "Installing setuptools for Python ${PYTHON_VERSION} compatibility..."
+"$PIP_EXEC" install "setuptools>=69.0.0" --no-user --target "$PSEUDO_VENV_DIR/lib/python${PYTHON_VERSION}/site-packages"
 if [ $? -ne 0 ]; then
     echo "Error: Failed to install setuptools."
     exit 1
 fi
 
-# Install dependencies using the pip executable
-echo "Installing dependencies from requirements.txt..."
-"$PIP_EXEC" install -r requirements.txt --no-user --target "$PSEUDO_VENV_DIR/lib/python3.12/site-packages"
-if [ $? -ne 0 ]; then
-    echo "Error: Failed to install dependencies. Check requirements.txt or network access."
-    exit 1
+# Install dependencies from requirements.txt if it exists
+if [ -f "requirements.txt" ]; then
+    echo "Installing dependencies from requirements.txt..."
+    "$PIP_EXEC" install -r requirements.txt --no-user --target "$PSEUDO_VENV_DIR/lib/python${PYTHON_VERSION}/site-packages"
+    if [ $? -ne 0 ]; then
+        echo "Error: Failed to install dependencies. Check requirements.txt or network access."
+        exit 1
+    fi
+else
+    echo "Warning: No requirements.txt found. Skipping dependency installation."
 fi
 
 # Verify installed packages
@@ -88,7 +96,7 @@ echo "Creating python wrapper..."
 cat <<EOL > "$PSEUDO_VENV_DIR/bin/python"
 #!/bin/bash
 export PYTHONPATH="$ABSOLUTE_VENV_PATH:\$PYTHONPATH"
-exec /usr/bin/python3.12 "\$@"
+exec /usr/bin/$PYTHON_EXEC "\$@"
 EOL
 chmod +x "$PSEUDO_VENV_DIR/bin/python"
 
@@ -97,34 +105,19 @@ echo "Testing python wrapper..."
 "$PSEUDO_VENV_DIR/bin/python" -c "import sys; print('sys.path:', sys.path)"
 "$PSEUDO_VENV_DIR/bin/python" -c "import pkg_resources; print('Installed packages:', [d.project_name for d in pkg_resources.working_set])"
 
-# Test running src/main.py
-echo "Testing src/main.py execution..."
-if [ -f "src/main.py" ]; then
-    "$PSEUDO_VENV_DIR/bin/python" src/main.py
-    if [ $? -ne 0 ]; then
-        echo "Error: src/main.py failed to run. Please check the error above and ensure all required modules are in requirements.txt."
-    else
-        echo "src/main.py ran successfully!"
-    fi
-else
-    echo "Warning: src/main.py not found. Skipping test."
-fi
+# Optional: Test a main script (uncomment and adjust if needed)
+# MAIN_SCRIPT="src/main.py"
+# echo "Testing $MAIN_SCRIPT execution..."
+# if [ -f "$MAIN_SCRIPT" ]; then
+#     "$PSEUDO_VENV_DIR/bin/python" "$MAIN_SCRIPT"
+#     if [ $? -ne 0 ]; then
+#         echo "Error: $MAIN_SCRIPT failed to run. Please check the error above and ensure all required modules are in requirements.txt."
+#     else
+#         echo "$MAIN_SCRIPT ran successfully!"
+#     fi
+# else
+#     echo "Warning: $MAIN_SCRIPT not found. Skipping test."
+# fi
 
-# Check if .env exists
-if [ ! -f ".env" ]; then
-    echo "Warning: .env file not found. Creating a template..."
-    cat <<EOL > .env
-C2G_TOKEN=your_c2g_token
-CVU_TOKEN=your_cvu_token
-COMPENSATION_TOKEN=your_compensation_token
-ERROR_TOKEN=your_error_token
-API_URL=https://redcap.your-institution.org/api/
-EOL
-    echo "Please edit .env with your REDCap tokens and API URL."
-else
-    echo ".env file found. Skipping template creation."
-fi
-
-echo "Installation complete! To test, run:"
-echo "  $PSEUDO_VENV_DIR/bin/python src/main.py"
-echo "See README.md for cronjob setup."
+echo "Installation complete! To use the pseudo-venv, run:"
+echo "  $PSEUDO_VENV_DIR/bin/python <your_script.py>"
