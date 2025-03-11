@@ -1,3 +1,10 @@
+## [0.2.3](https://github.com/chris-sutton/new-ids-canoe-compensation/compare/v0.2.2...v0.2.3) (2025-03-11)
+
+
+### Bug Fixes
+
+* test ([058f969](https://github.com/chris-sutton/new-ids-canoe-compensation/commit/058f9696a74c48bb276e065879693d6b42a6a258))
+
 ## [0.2.2](https://github.com/chris-sutton/new-ids-canoe-compensation/compare/v0.2.1...v0.2.2) (2025-03-11)
 
 
