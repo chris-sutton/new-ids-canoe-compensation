@@ -1,3 +1,10 @@
+## [0.2.4](https://github.com/chris-sutton/new-ids-canoe-compensation/compare/v0.2.3...v0.2.4) (2025-03-11)
+
+
+### Bug Fixes
+
+* tweak workflow for upload ([0676b46](https://github.com/chris-sutton/new-ids-canoe-compensation/commit/0676b466d44f9b35855adad9c63688bacc305716))
+
 ## [0.2.3](https://github.com/chris-sutton/new-ids-canoe-compensation/compare/v0.2.2...v0.2.3) (2025-03-11)
 
 
