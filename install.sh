@@ -16,6 +16,7 @@ echo "Setting up pseudo-virtual environment in $PSEUDO_VENV_DIR..."
 if [ -d "$PSEUDO_VENV_DIR" ]; then
     rm -rf "$PSEUDO_VENV_DIR"
 fi
+mkdir -p "$PSEUDO_VENV_DIR/lib/python3.12/site-packages"
 mkdir -p "$PSEUDO_VENV_DIR/bin"
 
 # Download get-pip.py if not present
@@ -28,9 +29,9 @@ if [ ! -f "get-pip.py" ]; then
     fi
 fi
 
-# Install pip into the pseudo-venv
+# Install pip into the pseudo-venv's site-packages
 echo "Installing pip locally..."
-python3.12 get-pip.py --target "$PSEUDO_VENV_DIR"
+PYTHONPATH="$PWD/$PSEUDO_VENV_DIR/lib/python3.12/site-packages" python3.12 get-pip.py --target "$PSEUDO_VENV_DIR/lib/python3.12/site-packages"
 if [ $? -ne 0 ]; then
     echo "Error: Failed to install pip into $PSEUDO_VENV_DIR."
     exit 1
@@ -42,9 +43,9 @@ if [ ! -f "$PSEUDO_VENV_DIR/bin/pip" ]; then
     exit 1
 fi
 
-# Install dependencies into the pseudo-venv using the pip script
+# Install dependencies into the pseudo-venv
 echo "Installing dependencies from requirements.txt..."
-"$PSEUDO_VENV_DIR/bin/pip" install -r requirements.txt --target "$PSEUDO_VENV_DIR"
+"$PSEUDO_VENV_DIR/bin/pip" install -r requirements.txt --no-user --prefix "$PSEUDO_VENV_DIR"
 if [ $? -ne 0 ]; then
     echo "Error: Failed to install dependencies. Check requirements.txt or network access."
     exit 1
@@ -53,7 +54,7 @@ fi
 # Create a simple python wrapper to use the pseudo-venv
 cat <<EOL > "$PSEUDO_VENV_DIR/bin/python"
 #!/bin/bash
-export PYTHONPATH="\$PYTHONPATH:$PWD/$PSEUDO_VENV_DIR"
+export PYTHONPATH="\$PYTHONPATH:$PWD/$PSEUDO_VENV_DIR/lib/python3.12/site-packages"
 exec /usr/bin/python3.12 -I -s "\$@"
 EOL
 chmod +x "$PSEUDO_VENV_DIR/bin/python"
