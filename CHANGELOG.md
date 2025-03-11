@@ -1,3 +1,10 @@
+## [0.2.7](https://github.com/chris-sutton/new-ids-canoe-compensation/compare/v0.2.6...v0.2.7) (2025-03-11)
+
+
+### Bug Fixes
+
+* switching to python 3.12 ([65a6bab](https://github.com/chris-sutton/new-ids-canoe-compensation/commit/65a6bab4d5060390737a9e932d36814c39f19e7e))
+
 ## [0.2.6](https://github.com/chris-sutton/new-ids-canoe-compensation/compare/v0.2.5...v0.2.6) (2025-03-11)
 
 
