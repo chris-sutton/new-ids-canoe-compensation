@@ -1,3 +1,10 @@
+# [0.3.0](https://github.com/chris-sutton/new-ids-canoe-compensation/compare/v0.2.7...v0.3.0) (2025-03-11)
+
+
+### Features
+
+* add install.sh to repo for pseudo-venv setup with Python 3.12 ([dceadd6](https://github.com/chris-sutton/new-ids-canoe-compensation/commit/dceadd62c75048fc3bc5dd68ef192a990b378748))
+
 ## [0.2.7](https://github.com/chris-sutton/new-ids-canoe-compensation/compare/v0.2.6...v0.2.7) (2025-03-11)
 
 
