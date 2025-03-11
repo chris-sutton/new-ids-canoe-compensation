@@ -36,15 +36,9 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-# Ensure pip is executable
-if [ ! -f "$PSEUDO_VENV_DIR/bin/pip" ]; then
-    echo "Error: pip was not installed correctly in $PSEUDO_VENV_DIR/bin."
-    exit 1
-fi
-
-# Install dependencies into the pseudo-venv
+# Install dependencies into the pseudo-venv using python -m pip
 echo "Installing dependencies from requirements.txt..."
-"$PSEUDO_VENV_DIR/bin/pip" install -r requirements.txt --target "$PSEUDO_VENV_DIR"
+PYTHONPATH="$PWD/$PSEUDO_VENV_DIR:$PYTHONPATH" python3.12 -I -s -m pip install -r requirements.txt --target "$PSEUDO_VENV_DIR"
 if [ $? -ne 0 ]; then
     echo "Error: Failed to install dependencies. Check requirements.txt or network access."
     exit 1
@@ -53,6 +47,7 @@ fi
 # Create a simple python wrapper to use the pseudo-venv
 cat <<EOL > "$PSEUDO_VENV_DIR/bin/python"
 #!/bin/bash
+export PYTHONPATH="\$PYTHONPATH:$PWD/$PSEUDO_VENV_DIR"
 exec /usr/bin/python3.12 -I -s "\$@"
 EOL
 chmod +x "$PSEUDO_VENV_DIR/bin/python"
@@ -73,6 +68,5 @@ else
 fi
 
 echo "Installation complete! To test, run:"
-echo "  export PYTHONPATH=\"\$PYTHONPATH:$PWD/$PSEUDO_VENV_DIR\""
 echo "  $PSEUDO_VENV_DIR/bin/python src/main.py"
 echo "See README.md for cronjob setup."
