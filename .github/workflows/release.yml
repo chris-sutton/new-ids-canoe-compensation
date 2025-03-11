@@ -57,6 +57,7 @@ jobs:
           mkdir -p release
           cp requirements.txt release/
           cp -r src release/
+          rm release/src/dummy.js
           cd release
           zip -r ../runtime-${{ needs.release-version.outputs.version }}.zip .
 
@@ -72,5 +73,5 @@ jobs:
         with:
           upload_url: ${{ needs.release-version.outputs.upload_url }}
           asset_path: ./runtime-${{ needs.release-version.outputs.version }}.zip
-          asset_name: runtime-${{ needs.release-version.outputs.version }}.zip
+          asset_name: runtime.zip  # Simplified, static name
           asset_content_type: application/zip
