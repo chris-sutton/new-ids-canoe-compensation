@@ -60,6 +60,6 @@ except Exception as e:
         url=api_url,
         token=error_token,
         fname="main.py",
-        projectsystem="CANOE Compensation",
+        projectsystem="new-ids-canoe-compensation",
         actualerrormsg=str(e)
     )
