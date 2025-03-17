@@ -1,3 +1,10 @@
+## [0.3.8](https://github.com/chris-sutton/new-ids-canoe-compensation/compare/v0.3.7...v0.3.8) (2025-03-17)
+
+
+### Bug Fixes
+
+* error_handler.py had 'CANOE Compensation' as the project system, when it ought to just be the name of the project system ([eaf5037](https://github.com/chris-sutton/new-ids-canoe-compensation/commit/eaf5037e5f589c90f4b2e0364b27efa988a027b3))
+
 ## [0.3.7](https://github.com/chris-sutton/new-ids-canoe-compensation/compare/v0.3.6...v0.3.7) (2025-03-11)
 
 
